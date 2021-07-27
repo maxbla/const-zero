@@ -13,6 +13,20 @@
 /// more development first (`const_fn_transmute`, `const_generics`,
 /// `const_evaluatable_checked`)
 ///
+/// const_zero does not work on unsized types
+/// ```rust compile_fail
+/// use const_zero::const_zero;
+/// // error[E0277]: the size for values of type `[u8]` cannot be known at compilation time
+/// const BYTES: [u8] = unsafe{const_zero!([u8])};
+/// ```
+/// reference types trigger a (denied by default) lint
+/// ```rust compile_fail
+/// use const_zero::const_zero;
+/// // error: any use of this value will cause an error
+/// // note: `#[deny(const_err)]` on by default
+/// const STR: &str = unsafe{const_zero!(&'static str)};
+/// ```
+///
 /// ## Differences with `std::mem::zeroed`
 /// `const_zero` zeroes padding bits, while `std::mem::zeroed` doesn't
 #[macro_export]
@@ -22,7 +36,7 @@ macro_rules! const_zero {
         union TypeAsBytes {
             bytes: [u8; TYPE_SIZE],
             inner: core::mem::ManuallyDrop<$type_>,
-        };
+        }
         const ZERO: TypeAsBytes = TypeAsBytes {
             bytes: [0; TYPE_SIZE],
         };
