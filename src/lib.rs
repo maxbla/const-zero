@@ -1,5 +1,8 @@
 #![no_std]
 
+#[doc(hidden)]
+pub use core;
+
 /// A marco that acts similarly to `std::mem::zeroed()`, only is const
 /// Example usage:
 /// ```rust
@@ -32,15 +35,15 @@
 #[macro_export]
 macro_rules! const_zero {
     ($type_:ty) => {{
-        const TYPE_SIZE: usize = core::mem::size_of::<$type_>();
+        const TYPE_SIZE: $crate::core::primitive::usize = $crate::core::mem::size_of::<$type_>();
         union TypeAsBytes {
-            bytes: [u8; TYPE_SIZE],
-            inner: core::mem::ManuallyDrop<$type_>,
+            bytes: [$crate::core::primitive::u8; TYPE_SIZE],
+            inner: $crate::core::mem::ManuallyDrop<$type_>,
         }
         const ZERO: TypeAsBytes = TypeAsBytes {
             bytes: [0; TYPE_SIZE],
         };
-        core::mem::ManuallyDrop::<$type_>::into_inner(ZERO.inner)
+        $crate::core::mem::ManuallyDrop::<$type_>::into_inner(ZERO.inner)
     }};
 }
 
@@ -134,5 +137,16 @@ mod tests {
     fn zeroed_unit() {
         const UNIT: () = unsafe { const_zero!(()) };
         assert_eq!((), UNIT);
+    }
+}
+
+#[cfg(test)]
+mod test_no_implicit_prelude {
+    #![no_implicit_prelude]
+
+    #[test]
+    fn zeroed_unit() {
+        const UNIT: () = unsafe { const_zero!(()) };
+        ::core::assert_eq!((), UNIT);
     }
 }
