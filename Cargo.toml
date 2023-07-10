@@ -8,4 +8,6 @@ description = "a const mem::zeroed"
 repository = "https://github.com/maxbla/const-zero"
 readme = "readme.md"
 
-[dependencies]
+[workspace]
+default-members = [".", "test-shadow-core"]
+members = [".", "test-shadow-core", "not-core"]
