@@ -3,7 +3,8 @@
 #[doc(hidden)]
 pub use core;
 
-/// A marco that acts similarly to `std::mem::zeroed()`, only is const
+/// A marco that acts similarly to [`core::mem::zeroed()`], only is const
+///
 /// Example usage:
 /// ```rust
 /// use const_zero::const_zero;
@@ -12,9 +13,16 @@ pub use core;
 /// };
 /// static mut zeroed_opaque: OpaqueStruct = unsafe {const_zero!(OpaqueStruct)};
 /// ```
+///
 /// Ideally const_zero would be a generic function, but const generics need
 /// more development first (`const_fn_transmute`, `const_generics`,
 /// `const_evaluatable_checked`)
+///
+/// ## Safety
+/// Similar to `core::mem::zeroed()`, except this zeroes padding bits. Zeroed
+/// padding usually isn't relevant to safety, but might be if a C union is used.
+/// To repeat `core::mem::zeroed()`'s safety, an all zero byte pattern might not
+/// be a valid value for a type; for example, references &T, &mut T.
 ///
 /// const_zero does not work on unsized types
 /// ```rust compile_fail
@@ -22,7 +30,8 @@ pub use core;
 /// // error[E0277]: the size for values of type `[u8]` cannot be known at compilation time
 /// const BYTES: [u8] = unsafe{const_zero!([u8])};
 /// ```
-/// reference types trigger a (denied by default) lint
+/// reference types trigger a (denied by default) lint and cause immediate
+/// undefined behavior if the lint is ignored
 /// ```rust compile_fail
 /// use const_zero::const_zero;
 /// // error: any use of this value will cause an error
@@ -30,8 +39,8 @@ pub use core;
 /// const STR: &str = unsafe{const_zero!(&'static str)};
 /// ```
 ///
-/// ## Differences with `std::mem::zeroed`
-/// `const_zero` zeroes padding bits, while `std::mem::zeroed` doesn't
+/// ## Differences with `core::mem::zeroed`
+/// `const_zero` zeroes padding bits, while `core::mem::zeroed` doesn't
 #[macro_export]
 macro_rules! const_zero {
     ($type_:ty) => {{
@@ -121,9 +130,7 @@ mod tests {
     #[test]
     fn drop_type() {
         #[derive(Clone, Debug)]
-        struct Droppable {
-            inner: (),
-        }
+        struct Droppable {}
         impl Drop for Droppable {
             fn drop(&mut self) {
                 // no-op
