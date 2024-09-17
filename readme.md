@@ -1,3 +1,5 @@
+# This crate is no longer necessary, as [`MaybeUninit::zeroed()`](https://doc.rust-lang.org/std/mem/union.MaybeUninit.html#method.zeroed) is const as of rust 1.75
+
 # Const-zero
 
 Provides a const version of [`core::mem::zeroed()`](https://doc.rust-lang.org/core/mem/fn.zeroed.html).
